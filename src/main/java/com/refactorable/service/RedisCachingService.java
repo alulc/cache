@@ -25,6 +25,7 @@ public class RedisCachingService implements CachingService {
      * @param jedisPool cannot be null
      */
     public RedisCachingService( JedisPool jedisPool ) {
+        LOGGER.info( "creating {}!", this.getClass().getSimpleName() );
         this.jedisPool = Validate.notNull( jedisPool );
     }
 
@@ -40,7 +41,6 @@ public class RedisCachingService implements CachingService {
         UUID key = UUID.randomUUID();
         byte[] keyAsBytes = key.toString().getBytes();
         try {
-            LOGGER.info( "starting insert into redis with key '{}'", key );
             jedis = jedisPool.getResource();
             Transaction transaction = jedis.multi();
             transaction.set( keyAsBytes, Gzip.compress( cacheableGetResult ) );
@@ -51,7 +51,6 @@ public class RedisCachingService implements CachingService {
             LOGGER.error( "failed to connect to redis", je );
             throw new ServiceUnavailableException();
         } finally {
-            LOGGER.info( "ending insert into redis with key '{}'", key );
             safelyClose( jedis );
         }
     }
@@ -63,7 +62,6 @@ public class RedisCachingService implements CachingService {
 
         Jedis jedis = null;
         try {
-            LOGGER.info( "starting retrieval from redis with key '{}'", key );
             jedis = jedisPool.getResource();
             byte[] compressed = jedis.get( key.toString().getBytes() );
             if( compressed == null ) return Optional.empty();
@@ -73,7 +71,6 @@ public class RedisCachingService implements CachingService {
             LOGGER.error( "failed to connect to redis", je );
             throw new ServiceUnavailableException();
         } finally {
-            LOGGER.info( "ending retrieval from redis with key '{}'", key  );
             safelyClose( jedis );
         }
     }

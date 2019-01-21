@@ -5,7 +5,10 @@ import com.refactorable.api.Header;
 import com.refactorable.api.PostCacheRequest;
 import com.refactorable.core.CacheableGetResult;
 import com.refactorable.service.CachingService;
+import com.refactorable.service.RedisCachingService;
 import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -19,6 +22,8 @@ import java.util.stream.Collectors;
 @Path( "/cache" )
 public class CacheResource {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( CacheResource.class );
+
     private final CachingService cachingService;
 
     /**
@@ -26,6 +31,7 @@ public class CacheResource {
      * @param cachingService cannot be null
      */
     public CacheResource( CachingService cachingService ) {
+        LOGGER.info( "creating {}!", this.getClass().getSimpleName() );
         this.cachingService = Validate.notNull( cachingService );
     }
 

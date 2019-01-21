@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class InMemoryCachingService implements CachingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( InMemoryCachingService.class );
-    private static final int DEFAULT_CACHE_SIZE = 10000;
+    private static final int DEFAULT_CACHE_SIZE = 1000;
 
     private final ExpiringMap<UUID, byte[]> expiringMap;
 
@@ -24,6 +24,7 @@ public class InMemoryCachingService implements CachingService {
      * @param expiringMap cannot be null
      */
     public InMemoryCachingService( ExpiringMap<UUID, byte[]> expiringMap ) {
+        LOGGER.info( "creating {}!", this.getClass().getSimpleName() );
         this.expiringMap = Validate.notNull( expiringMap );
     }
 
@@ -31,6 +32,7 @@ public class InMemoryCachingService implements CachingService {
         this( ExpiringMap
                 .builder()
                 .maxSize( DEFAULT_CACHE_SIZE )
+                .expirationPolicy( ExpirationPolicy.CREATED )
                 .variableExpiration()
                 .build() );
     }
