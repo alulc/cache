@@ -1,5 +1,6 @@
 package com.refactorable.util;
 
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,9 @@ public final class Gzip {
             byte[] compressed,
             Class<T> clazz ) {
 
+        Validate.notNull( compressed );
+        Validate.notNull( clazz );
+
         try {
             ByteArrayInputStream bais = new ByteArrayInputStream( compressed );
             GZIPInputStream gzipIn = new GZIPInputStream( bais );
@@ -26,11 +30,14 @@ public final class Gzip {
             objectIn.close();
             return decompressed;
         } catch( Exception e ) {
+            LOGGER.error( "failed to decompress '{}'", clazz.getSimpleName(), e );
             throw new InternalServerErrorException( String.format( "failed to decompress '%s'", clazz.getSimpleName() ) );
         }
     }
 
     public static <T extends Serializable> byte[] compress( T target ) {
+
+        Validate.notNull( target );
 
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -42,6 +49,7 @@ public final class Gzip {
             LOGGER.debug( "compressed to '{}' bytes", compressed.length );
             return compressed;
         } catch( Exception e ) {
+            LOGGER.error( "failed to compress '{}'", target.getClass().getSimpleName(), e );
             throw new InternalServerErrorException( String.format( "failed to compress '%s'", target.getClass().getSimpleName() ) );
         }
     }

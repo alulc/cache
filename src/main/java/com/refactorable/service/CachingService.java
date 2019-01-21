@@ -9,7 +9,7 @@ public interface CachingService {
 
     /**
      *
-     * @param ttlInMinutes cannot be negative
+     * @param ttlInMinutes cannot less than 1
      * @param cacheableGetResult cannot be null
      *
      * @return id of cached resource

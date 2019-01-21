@@ -5,6 +5,7 @@ import com.refactorable.api.Header;
 import com.refactorable.api.PostCacheRequest;
 import com.refactorable.core.CacheableGetResult;
 import com.refactorable.service.CachingService;
+import org.apache.commons.lang3.Validate;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -18,8 +19,15 @@ import java.util.stream.Collectors;
 @Path( "/cache" )
 public class CacheResource {
 
-    @Inject
-    private CachingService cachingService;
+    private final CachingService cachingService;
+
+    /**
+     *
+     * @param cachingService cannot be null
+     */
+    public CacheResource( CachingService cachingService ) {
+        this.cachingService = Validate.notNull( cachingService );
+    }
 
     @GET
     @Path( "/{id}" )

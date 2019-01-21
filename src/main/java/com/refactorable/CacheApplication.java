@@ -24,19 +24,15 @@ public class CacheApplication extends Application<CacheConfiguration> {
             CacheConfiguration configuration,
             Environment environment ) {
 
-        environment.jersey().register( new CacheResource() );
-        environment.jersey().register( new AbstractBinder() {
-            @Override
-            protected void configure() {
-                JedisFactory jedisFactory = configuration.getJedisFactory();
-                if( jedisFactory == null ) {
-                    LOGGER.warn( "an in-memory cache is being used!" );
-                    bind( new InMemoryCachingService() ).to( CachingService.class );
-                } else {
-                    LOGGER.info( "redis is being used!" );
-                    bind( new RedisCachingService( jedisFactory.build( environment ) ) ).to( CachingService.class );
-                }
-            }
-        } );
+        CachingService cachingService = null;
+        JedisFactory jedisFactory = configuration.getJedisFactory();
+        if( jedisFactory == null ) {
+            LOGGER.warn( "an in-memory cache is being used!" );
+            cachingService = new InMemoryCachingService();
+        } else {
+            LOGGER.info( "redis is being used!" );
+            cachingService = new RedisCachingService( jedisFactory.build( environment ) );
+        }
+        environment.jersey().register( new CacheResource( cachingService ) );
     }
 }

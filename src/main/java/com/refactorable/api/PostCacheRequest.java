@@ -8,7 +8,7 @@ import javax.validation.constraints.Min;
 
 public class PostCacheRequest {
 
-    @Min( value = 0L, message = "must be positive" )
+    @Min( value = 1L, message = "must be greater that 0" )
     private final Integer ttlInMinutes;
 
     @NotEmpty

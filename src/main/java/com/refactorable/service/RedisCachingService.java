@@ -37,24 +37,22 @@ public class RedisCachingService implements CachingService {
         Validate.notNull( cacheableGetResult );
 
         Jedis jedis = null;
+        UUID key = UUID.randomUUID();
+        byte[] keyAsBytes = key.toString().getBytes();
         try {
+            LOGGER.info( "starting insert into redis with key '{}'", key );
             jedis = jedisPool.getResource();
-            UUID key = UUID.randomUUID();
-            byte[] keyAsBytes = key.toString().getBytes();
-            LOGGER.info( "starting redis transaction" );
             Transaction transaction = jedis.multi();
             transaction.set( keyAsBytes, Gzip.compress( cacheableGetResult ) );
             transaction.expire( keyAsBytes, ttlInMinutes * 60 );
             transaction.exec();
-            LOGGER.info( "ending redis transaction" );
             return key;
         } catch( JedisException je ) {
             LOGGER.error( "failed to connect to redis", je );
             throw new ServiceUnavailableException();
         } finally {
-            LOGGER.debug( "closing redis connection" );
-            if( jedis != null ) jedis.close();
-            LOGGER.debug( "redis connection closed" );
+            LOGGER.info( "ending insert into redis with key '{}'", key );
+            safelyClose( jedis );
         }
     }
 
@@ -65,6 +63,7 @@ public class RedisCachingService implements CachingService {
 
         Jedis jedis = null;
         try {
+            LOGGER.info( "starting retrieval from redis with key '{}'", key );
             jedis = jedisPool.getResource();
             byte[] compressed = jedis.get( key.toString().getBytes() );
             if( compressed == null ) return Optional.empty();
@@ -74,9 +73,20 @@ public class RedisCachingService implements CachingService {
             LOGGER.error( "failed to connect to redis", je );
             throw new ServiceUnavailableException();
         } finally {
+            LOGGER.info( "ending retrieval from redis with key '{}'", key  );
+            safelyClose( jedis );
+        }
+    }
+
+    static void safelyClose( Jedis jedis ) {
+        if( jedis != null ) {
             LOGGER.debug( "closing redis connection" );
-            if( jedis != null ) jedis.close();
-            LOGGER.debug( "redis connection closed" );
+            try {
+                jedis.close();
+                LOGGER.debug( "redis connection closed" );
+            } catch( Exception e ) {
+                LOGGER.warn( "failed to close redis connection!", e );
+            }
         }
     }
 }
