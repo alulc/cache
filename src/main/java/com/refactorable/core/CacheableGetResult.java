@@ -66,7 +66,7 @@ public class CacheableGetResult implements Serializable {
         try {
             Response response = CLIENT.target( uri ).request().get();
             if( response.getStatus() < 200 || response.getStatus() >= 300 ) {
-                // treat any request that isn't 2XX (Successful) as an issue with the upstream server.
+                // treat any request that doesn't result in a 2XX (Successful) as an issue with the upstream server.
                 LOGGER.warn( "received '{}' status GET '{}'", response.getStatus(), uri );
                 throw new BadGatewayException();
             }
@@ -111,6 +111,7 @@ public class CacheableGetResult implements Serializable {
         for( Map.Entry<String, List<String>> entry : multivaluedMap.entrySet() ) {
             map.put( entry.getKey(), String.join( ",", entry.getValue() ) );
         }
+        LOGGER.debug( "{} to {}", multivaluedMap, map );
         return map;
     }
 

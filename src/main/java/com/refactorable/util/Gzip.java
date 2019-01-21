@@ -22,12 +22,13 @@ public final class Gzip {
         Validate.notNull( compressed );
         Validate.notNull( clazz );
 
-        try {
+        try(
             ByteArrayInputStream bais = new ByteArrayInputStream( compressed );
             GZIPInputStream gzipIn = new GZIPInputStream( bais );
-            ObjectInputStream objectIn = new ObjectInputStream( gzipIn );
+            ObjectInputStream objectIn = new ObjectInputStream( gzipIn )
+        ) {
             T decompressed = clazz.cast( objectIn.readObject() );
-            objectIn.close();
+            LOGGER.debug( "{} decompressed", clazz.getSimpleName() );
             return decompressed;
         } catch( Exception e ) {
             LOGGER.error( "failed to decompress '{}'", clazz.getSimpleName(), e );
@@ -39,12 +40,13 @@ public final class Gzip {
 
         Validate.notNull( target );
 
-        try {
+        try(
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             GZIPOutputStream gzipOut = new GZIPOutputStream( baos );
-            ObjectOutputStream objectOut = new ObjectOutputStream( gzipOut );
+            ObjectOutputStream objectOut = new ObjectOutputStream( gzipOut )
+        ) {
             objectOut.writeObject( target );
-            objectOut.close();
+            objectOut.close(); // <- required
             byte[] compressed = baos.toByteArray();
             LOGGER.debug( "compressed to '{}' bytes", compressed.length );
             return compressed;
