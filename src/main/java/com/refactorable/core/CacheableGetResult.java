@@ -1,0 +1,141 @@
+package com.refactorable.core;
+
+import com.refactorable.rs.BadGatewayException;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import java.io.*;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
+/**
+ *  Behaviorally rich domain model, see https://www.martinfowler.com/bliki/AnemicDomainModel.html
+ */
+public class CacheableGetResult implements Serializable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( CacheableGetResult.class );
+    private static final long serialVersionUID = -1485513695846146366L;
+
+    // thread safe
+    static final Client CLIENT = ClientBuilder.newClient();
+
+    private final URI uri;
+    private final Map<String, String> headers;
+    private final String body;
+
+    /**
+     *
+     * @param uri cannot be null
+     * @param headers cannot be null
+     * @param body cannot be null
+     */
+    CacheableGetResult(
+            URI uri,
+            Map<String, String> headers,
+            String body ) {
+        this.uri = Validate.notNull( uri );
+        this.headers = Validate.notNull( headers );
+        this.body = Validate.notNull( body );
+    }
+
+    /**
+     * Attempts to construct {@link CacheableGetResult} using the {@link URI} provided
+     * by making a GET call to the {@link URI}.
+     *
+     * @param uri cannot be null
+     *
+     * @return {@link CacheableGetResult} representation of result from a GET call to the {@link URI}.
+     */
+    public static CacheableGetResult fromUri( URI uri ) {
+
+        Validate.notNull( uri );
+
+        try {
+            Response response = CLIENT.target( uri ).request().get();
+            if( response.getStatus() < 200 || response.getStatus() >= 300 ) {
+                // treat any request that isn't 2XX (Successful) as an issue with the upstream server.
+                LOGGER.warn( "received '{}' status GET '{}'", response.getStatus(), uri );
+                throw new BadGatewayException();
+            }
+            return new CacheableGetResult(
+                    uri,
+                    multivaluedMapToMap( response.getStringHeaders() ),
+                    response.readEntity( String.class ) );
+        } catch( ProcessingException pe ) {
+            LOGGER.warn( "issue connecting to '{}'", uri, pe );
+            throw new BadGatewayException();
+        }
+    }
+
+    public URI getUri() {
+        return uri;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    /**
+     *
+     * {@link MultivaluedMap} is not serializable so we need to convert is to a {@link Map}.
+     *
+     * If during conversion a header has multiple values, they are combined into
+     * a String that is comma delimited.
+     *
+     * @param multivaluedMap cannot be null
+     *
+     * @return {@link Map} representation of {@link MultivaluedMap}
+     */
+    static Map<String, String> multivaluedMapToMap( MultivaluedMap<String, String> multivaluedMap ) {
+
+        Validate.notNull( multivaluedMap );
+
+        Map<String, String> map = new HashMap<>( multivaluedMap.size() );
+        for( Map.Entry<String, List<String>> entry : multivaluedMap.entrySet() ) {
+            map.put( entry.getKey(), String.join( ",", entry.getValue() ) );
+        }
+        return map;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if( this == o ) return true;
+        if( o == null || getClass() != o.getClass() ) return false;
+        CacheableGetResult that = ( CacheableGetResult ) o;
+        return Objects.equals( uri, that.uri ) &&
+                Objects.equals( headers, that.headers ) &&
+                Objects.equals( body, that.body );
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash( uri, headers, body );
+    }
+
+    @Override
+    public String toString() {
+        return "CacheableGetResult{" +
+                "uri=" + uri +
+                ", headers=" + headers +
+                ", body='" + body + '\'' +
+                '}';
+    }
+}
