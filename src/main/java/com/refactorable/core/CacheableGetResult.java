@@ -1,25 +1,21 @@
 package com.refactorable.core;
 
 import com.refactorable.rs.BadGatewayException;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import java.io.*;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  *  Behaviorally rich domain model, see https://www.martinfowler.com/bliki/AnemicDomainModel.html
@@ -30,7 +26,7 @@ public class CacheableGetResult implements Serializable {
     private static final long serialVersionUID = -1485513695846146366L;
 
     // thread safe
-    static final Client CLIENT = ClientBuilder.newClient();
+    static Client CLIENT = ClientBuilder.newClient();
 
     private final URI uri;
     private final Map<String, String> headers;
@@ -57,14 +53,17 @@ public class CacheableGetResult implements Serializable {
      *
      * @param uri cannot be null
      *
+     * @throws BadGatewayException if a request to the upstream server does not result in 2XX
+     *
      * @return {@link CacheableGetResult} representation of result from a GET call to the {@link URI}.
      */
     public static CacheableGetResult fromUri( URI uri ) {
 
         Validate.notNull( uri );
 
+        Response response = null;
         try {
-            Response response = CLIENT.target( uri ).request().get();
+            response = CLIENT.target( uri ).request().get();
             if( response.getStatus() < 200 || response.getStatus() >= 300 ) {
                 // treat any request that doesn't result in a 2XX (Successful) as an issue with the upstream server.
                 LOGGER.warn( "received '{}' status GET '{}'", response.getStatus(), uri );
@@ -77,6 +76,8 @@ public class CacheableGetResult implements Serializable {
         } catch( ProcessingException pe ) {
             LOGGER.warn( "issue connecting to '{}'", uri, pe );
             throw new BadGatewayException();
+        } finally {
+            safelyClose( response );
         }
     }
 
@@ -113,6 +114,18 @@ public class CacheableGetResult implements Serializable {
         }
         LOGGER.debug( "{} to {}", multivaluedMap, map );
         return map;
+    }
+
+    static void safelyClose( Response response ) {
+        if( response != null ) {
+            LOGGER.debug( "closing response connection" );
+            try {
+                response.close();
+                LOGGER.debug( "response connection closed" );
+            } catch( Exception e ) {
+                LOGGER.warn( "failed to close response connection!", e );
+            }
+        }
     }
 
     @Override

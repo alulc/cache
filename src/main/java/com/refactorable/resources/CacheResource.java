@@ -5,13 +5,13 @@ import com.refactorable.api.Header;
 import com.refactorable.api.PostCacheRequest;
 import com.refactorable.core.CacheableGetResult;
 import com.refactorable.service.CachingService;
-import com.refactorable.service.RedisCachingService;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
