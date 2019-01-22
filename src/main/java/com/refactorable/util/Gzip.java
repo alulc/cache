@@ -28,7 +28,7 @@ public final class Gzip {
             ObjectInputStream objectIn = new ObjectInputStream( gzipIn )
         ) {
             T decompressed = clazz.cast( objectIn.readObject() );
-            LOGGER.debug( "{} decompressed", clazz.getSimpleName() );
+            LOGGER.debug( "'{}' decompressed", clazz.getSimpleName() );
             return decompressed;
         } catch( Exception e ) {
             LOGGER.error( "failed to decompress '{}'", clazz.getSimpleName(), e );

@@ -6,3 +6,8 @@ redis:
   maxTotal: 1
   ssl: false
   timeout: 2000
+
+useInMemoryCache: true
+
+swagger:
+  resourcePackage: com.refactorable.resources, com.refactorable.api

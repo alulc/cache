@@ -34,7 +34,7 @@ public class RedisCachingService implements CachingService {
             int ttlInMinutes,
             CacheableGetResult cacheableGetResult ) {
 
-        Validate.isTrue( ttlInMinutes > 0 );
+        Validate.isTrue( ttlInMinutes > 0 && ttlInMinutes <= 525600 );
         Validate.notNull( cacheableGetResult );
 
         Jedis jedis = null;

@@ -6,6 +6,7 @@ import com.refactorable.api.PostCacheRequest;
 import com.refactorable.core.CacheableGetResult;
 import com.refactorable.service.CachingService;
 import com.refactorable.service.RedisCachingService;
+import io.swagger.annotations.*;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Path( "/cache" )
+@Api( value = "Cache API" )
 public class CacheResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( CacheResource.class );
@@ -38,6 +40,11 @@ public class CacheResource {
     @GET
     @Path( "/{id}" )
     @Produces( MediaType.APPLICATION_JSON )
+    @ApiResponses( value = {
+            @ApiResponse( code = 200, message = Status.OK ),
+            @ApiResponse( code = 404, message = Status.NOT_FOUND ),
+            @ApiResponse( code = 500, message = Status.INTERNAL_ERROR ),
+            @ApiResponse( code = 503, message = Status.SERVICE_UNAVAILABLE ) } )
     public GetCacheResult get( @PathParam( "id" ) UUID id ) {
 
         Optional<CacheableGetResult> optionalCacheableGetResult = cachingService.get( id );
@@ -59,6 +66,14 @@ public class CacheResource {
     @POST
     @Produces( MediaType.APPLICATION_JSON )
     @Consumes( MediaType.APPLICATION_JSON )
+    @ApiResponses( value = {
+            @ApiResponse( code = 201, message = Status.CREATED ),
+            @ApiResponse( code = 400, message = Status.BAD_REQUEST ),
+            @ApiResponse( code = 404, message = Status.NOT_FOUND ),
+            @ApiResponse( code = 422, message = Status.UNPROCESSABLE_ENTITY ),
+            @ApiResponse( code = 500, message = Status.INTERNAL_ERROR ),
+            @ApiResponse( code = 502, message = Status.BAD_GATEWAY ),
+            @ApiResponse( code = 503, message = Status.SERVICE_UNAVAILABLE ) } )
     public Response post(
             @Valid PostCacheRequest postCacheRequest,
             @Context UriInfo uriInfo ) {

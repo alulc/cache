@@ -2,14 +2,17 @@ package com.refactorable.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.validator.constraints.NotEmpty;
 
 public class Header {
 
     @NotEmpty
+    @ApiModelProperty( required = true )
     private final String name;
 
     @NotEmpty
+    @ApiModelProperty( required = true )
     private final String value;
 
     @JsonCreator
