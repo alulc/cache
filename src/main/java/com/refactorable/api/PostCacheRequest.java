@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -15,6 +16,7 @@ public class PostCacheRequest {
     @ApiModelProperty( required = true )
     private final Integer ttlInMinutes;
 
+    @URL
     @NotEmpty
     @ApiModelProperty( required = true )
     private final String url;
