@@ -1,10 +1,9 @@
 package com.refactorable;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.refactorable.core.service.CachingService;
+import com.refactorable.core.service.InMemoryCachingService;
+import com.refactorable.core.service.RedisCachingService;
 import com.refactorable.resources.CacheResource;
-import com.refactorable.service.CachingService;
-import com.refactorable.service.InMemoryCachingService;
-import com.refactorable.service.RedisCachingService;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -44,10 +43,9 @@ public class CacheApplication extends Application<CacheConfiguration> {
             LOGGER.info( "redis is being used!" );
             cachingService = new RedisCachingService( configuration.getJedisFactory().build( environment ) );
         } else {
-            LOGGER.info( "redis configuration not defined!" );
+            LOGGER.error( "redis configuration not defined!" );
             System.exit( 0 );
         }
         environment.jersey().register( new CacheResource( cachingService ) );
-        environment.getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 }

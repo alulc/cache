@@ -7,7 +7,7 @@ redis:
   ssl: false
   timeout: 2000
 
-useInMemoryCache: true
+useInMemoryCache: false
 
 swagger:
   resourcePackage: com.refactorable.resources, com.refactorable.api

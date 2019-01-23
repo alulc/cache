@@ -1,6 +1,6 @@
-package com.refactorable.service;
+package com.refactorable.core.service;
 
-import com.refactorable.core.CacheableGetResult;
+import com.refactorable.core.model.CacheableGetResult;
 
 import java.util.Optional;
 import java.util.UUID;

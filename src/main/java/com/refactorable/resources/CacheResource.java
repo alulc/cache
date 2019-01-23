@@ -3,8 +3,8 @@ package com.refactorable.resources;
 import com.refactorable.api.GetCacheResult;
 import com.refactorable.api.Header;
 import com.refactorable.api.PostCacheRequest;
-import com.refactorable.core.CacheableGetResult;
-import com.refactorable.service.CachingService;
+import com.refactorable.core.model.CacheableGetResult;
+import com.refactorable.core.service.CachingService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -20,11 +20,15 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Path( "/cache" )
+import static com.refactorable.resources.CacheResource.PATH_BASE;
+
+@Path( PATH_BASE )
 @Api( value = "Cache API" )
 public class CacheResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( CacheResource.class );
+
+    public static final String PATH_BASE = "/cache";
 
     private final CachingService cachingService;
 
@@ -69,7 +73,6 @@ public class CacheResource {
     @ApiResponses( value = {
             @ApiResponse( code = 201, message = Status.CREATED ),
             @ApiResponse( code = 400, message = Status.BAD_REQUEST ),
-            @ApiResponse( code = 404, message = Status.NOT_FOUND ),
             @ApiResponse( code = 422, message = Status.UNPROCESSABLE_ENTITY ),
             @ApiResponse( code = 500, message = Status.INTERNAL_ERROR ),
             @ApiResponse( code = 502, message = Status.BAD_GATEWAY ),

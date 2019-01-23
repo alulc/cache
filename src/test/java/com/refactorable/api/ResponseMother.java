@@ -1,6 +1,6 @@
-package com.refactorable.mother;
+package com.refactorable.api;
 
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response;
 
 public final class ResponseMother {
 

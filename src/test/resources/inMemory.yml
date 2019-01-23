@@ -1,0 +1,4 @@
+useInMemoryCache: true
+
+swagger:
+  resourcePackage: com.refactorable.resources, com.refactorable.api

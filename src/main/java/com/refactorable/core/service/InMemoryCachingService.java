@@ -1,7 +1,7 @@
-package com.refactorable.service;
+package com.refactorable.core.service;
 
-import com.refactorable.core.CacheableGetResult;
-import com.refactorable.util.Gzip;
+import com.refactorable.core.model.CacheableGetResult;
+import com.refactorable.core.util.Gzip;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
 import org.apache.commons.lang3.Validate;

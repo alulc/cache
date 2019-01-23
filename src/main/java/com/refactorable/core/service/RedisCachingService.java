@@ -1,7 +1,7 @@
-package com.refactorable.service;
+package com.refactorable.core.service;
 
-import com.refactorable.core.CacheableGetResult;
-import com.refactorable.util.Gzip;
+import com.refactorable.core.model.CacheableGetResult;
+import com.refactorable.core.util.Gzip;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +51,7 @@ public class RedisCachingService implements CachingService {
             LOGGER.error( "failed to connect to redis", je );
             throw new ServiceUnavailableException();
         } finally {
-            safelyClose( jedis );
+            closeQuietly( jedis );
         }
     }
 
@@ -71,11 +71,11 @@ public class RedisCachingService implements CachingService {
             LOGGER.error( "failed to connect to redis", je );
             throw new ServiceUnavailableException();
         } finally {
-            safelyClose( jedis );
+            closeQuietly( jedis );
         }
     }
 
-    static void safelyClose( Jedis jedis ) {
+    static void closeQuietly( Jedis jedis ) {
         if( jedis != null ) {
             LOGGER.debug( "closing redis connection" );
             try {

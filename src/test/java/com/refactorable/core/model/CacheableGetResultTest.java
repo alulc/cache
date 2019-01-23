@@ -1,12 +1,15 @@
-package com.refactorable.core;
+package com.refactorable.core.model;
 
-import com.refactorable.mother.ResponseMother;
+import com.refactorable.api.ResponseMother;
 import com.refactorable.rs.BadGatewayException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import java.net.URI;
 import java.util.HashMap;
 
@@ -18,6 +21,11 @@ public class CacheableGetResultTest {
     public void setUp() {
         CLIENT = Mockito.mock( Client.class, Mockito.RETURNS_DEEP_STUBS );
         CacheableGetResult.CLIENT = CLIENT;
+    }
+
+    @After
+    public void after(){
+        CacheableGetResult.CLIENT = ClientBuilder.newClient();
     }
 
     @Test( expected = NullPointerException.class )
@@ -86,7 +94,7 @@ public class CacheableGetResultTest {
     }
 
     @Test
-    public void safelyClose_nullResponse_ok() {
-        CacheableGetResult.safelyClose( null );
+    public void closeQuietly_nullResponse_ok() {
+        CacheableGetResult.closeQuietly( null );
     }
 }

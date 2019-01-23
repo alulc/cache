@@ -30,3 +30,8 @@ redis:
   ssl: false
   timeout: 2000
 ```
+
+## Test
+```json
+mvn verify
+```

@@ -1,4 +1,4 @@
-package com.refactorable.core;
+package com.refactorable.core.model;
 
 import com.refactorable.rs.BadGatewayException;
 import org.apache.commons.lang3.Validate;
@@ -77,7 +77,7 @@ public class CacheableGetResult implements Serializable {
             LOGGER.warn( "issue connecting to '{}'", uri, pe );
             throw new BadGatewayException();
         } finally {
-            safelyClose( response );
+            closeQuietly( response );
         }
     }
 
@@ -116,7 +116,7 @@ public class CacheableGetResult implements Serializable {
         return map;
     }
 
-    static void safelyClose( Response response ) {
+    static void closeQuietly( Response response ) {
         if( response != null ) {
             LOGGER.debug( "closing response connection" );
             try {
