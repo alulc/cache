@@ -16,7 +16,7 @@ public class CacheConfiguration extends Configuration {
     private SwaggerBundleConfiguration swaggerBundleConfiguration;
 
     @JsonProperty
-    private Boolean useInMemoryCache;
+    private boolean useInMemoryCache;
 
     public JedisFactory getJedisFactory() {
         return redis;
