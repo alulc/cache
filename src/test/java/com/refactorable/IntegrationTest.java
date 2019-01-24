@@ -1,7 +1,7 @@
 package com.refactorable;
 
 import com.refactorable.api.GetCacheResult;
-import com.refactorable.api.PostCacheRequestMother;
+import com.refactorable.mother.PostCacheRequestMother;
 import com.refactorable.resources.CacheResource;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;

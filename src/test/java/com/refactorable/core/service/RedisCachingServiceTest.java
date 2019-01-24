@@ -1,8 +1,8 @@
 package com.refactorable.core.service;
 
-import com.refactorable.core.model.CacheableGetResult;
-import com.refactorable.core.model.CacheableGetResultMother;
+import com.refactorable.core.model.GenericGetResult;
 import com.refactorable.core.util.Gzip;
+import com.refactorable.mother.GenericGetResultMother;
 import org.junit.Test;
 import org.mockito.Mockito;
 import redis.clients.jedis.Jedis;
@@ -23,7 +23,7 @@ public class RedisCachingServiceTest {
     Jedis jedis = Mockito.mock( Jedis.class );
     Transaction transaction = Mockito.mock( Transaction.class );
 
-    CachingService cachingService = new RedisCachingService( jedisPool );
+    CachingService<GenericGetResult> cachingService = new RedisCachingService<>( jedisPool );
 
     @Test( expected = NullPointerException.class )
     public void constructor_nullJedisPool_throwsNullPointerException() {
@@ -37,18 +37,18 @@ public class RedisCachingServiceTest {
 
     @Test( expected = IllegalArgumentException.class )
     public void add_ttlLessThanOne_throwsIllegalArgumentException() {
-        cachingService.add( -1, CacheableGetResultMother.google() );
+        cachingService.add( -1, GenericGetResultMother.google() );
     }
 
     @Test( expected = IllegalArgumentException.class )
     public void add_ttlGreaterThanOneYear_throwsIllegalArgumentException() {
-        cachingService.add( 999999999, CacheableGetResultMother.google() );
+        cachingService.add( 999999999, GenericGetResultMother.google() );
     }
 
     @Test( expected = ServiceUnavailableException.class )
     public void add_redisConnectionIssue_throwsServiceUnavailableException() {
         Mockito.doThrow( new JedisException( "test" ) ).when( jedisPool ).getResource();
-        cachingService.add( 1, CacheableGetResultMother.google() );
+        cachingService.add( 1, GenericGetResultMother.google() );
     }
 
     @Test
@@ -58,21 +58,35 @@ public class RedisCachingServiceTest {
         Mockito.doReturn( null ).when( transaction ).set( Mockito.any(), Mockito.any( byte[].class ) );
         Mockito.doReturn( null ).when( transaction ).expire( Mockito.any( byte[].class ), Mockito.anyInt() );
         Mockito.doReturn( null ).when( transaction ).exec();
-        UUID id = cachingService.add( 1, CacheableGetResultMother.google() );
+        UUID id = cachingService.add( 1, GenericGetResultMother.google() );
         assertNotNull( id );
     }
 
     @Test( expected = NullPointerException.class )
     public void get_nullKey_throwsNullPointerException() {
-        cachingService.get( null );
+        cachingService.get( null, GenericGetResult.class );
+    }
+
+    @Test( expected = NullPointerException.class )
+    public void get_nullClass_throwsNullPointerException() {
+        cachingService.get( UUID.randomUUID(), null );
+    }
+
+    @Test( expected = ClassCastException.class )
+    public void get_incompatibleType_throwsClassCastException() {
+        byte[] compressed = Gzip.compress( "test" );
+        Mockito.doReturn( jedis ).when( jedisPool ).getResource();
+        Mockito.doReturn( compressed ).when( jedis ).get( Mockito.any( byte[].class ) );
+        Optional<GenericGetResult> cacheableGetResult = cachingService.get( UUID.randomUUID(), GenericGetResult.class );
+        assertTrue( cacheableGetResult.isPresent() );
     }
 
     @Test
     public void get_validKey_returnCacheableGetResult() {
-        byte[] compressed = Gzip.compress( CacheableGetResultMother.google() );
+        byte[] compressed = Gzip.compress( GenericGetResultMother.google() );
         Mockito.doReturn( jedis ).when( jedisPool ).getResource();
         Mockito.doReturn( compressed ).when( jedis ).get( Mockito.any( byte[].class ) );
-        Optional<CacheableGetResult> cacheableGetResult = cachingService.get( UUID.randomUUID() );
+        Optional<GenericGetResult> cacheableGetResult = cachingService.get( UUID.randomUUID(), GenericGetResult.class );
         assertTrue( cacheableGetResult.isPresent() );
     }
 

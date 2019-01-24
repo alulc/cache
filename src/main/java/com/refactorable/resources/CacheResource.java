@@ -3,16 +3,19 @@ package com.refactorable.resources;
 import com.refactorable.api.GetCacheResult;
 import com.refactorable.api.Header;
 import com.refactorable.api.PostCacheRequest;
-import com.refactorable.core.model.CacheableGetResult;
+import com.refactorable.core.model.GenericGetResult;
 import com.refactorable.core.service.CachingService;
+import com.refactorable.core.service.GenericGetResultService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.ResponseHeader;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
@@ -30,15 +33,20 @@ public class CacheResource {
 
     public static final String PATH_BASE = "/cache";
 
-    private final CachingService cachingService;
+    private final CachingService<GenericGetResult> cachingService;
+    private final GenericGetResultService genericGetResultService;
 
     /**
      *
      * @param cachingService cannot be null
+     * @param genericGetResultService cannot be null
      */
-    public CacheResource( CachingService cachingService ) {
+    public CacheResource(
+            CachingService<GenericGetResult> cachingService,
+            GenericGetResultService genericGetResultService ) {
         LOGGER.info( "creating {}!", this.getClass().getSimpleName() );
         this.cachingService = Validate.notNull( cachingService );
+        this.genericGetResultService = Validate.notNull( genericGetResultService );
     }
 
     @GET
@@ -51,19 +59,19 @@ public class CacheResource {
             @ApiResponse( code = 503, message = Status.SERVICE_UNAVAILABLE ) } )
     public GetCacheResult get( @PathParam( "id" ) UUID id ) {
 
-        Optional<CacheableGetResult> optionalCacheableGetResult = cachingService.get( id );
+        Optional<GenericGetResult> optionalCacheableGetResult = cachingService.get( id, GenericGetResult.class );
 
         if( !optionalCacheableGetResult.isPresent() ) throw new NotFoundException();
 
-        CacheableGetResult cacheableGetResult = optionalCacheableGetResult.get();
+        GenericGetResult genericGetResult = optionalCacheableGetResult.get();
         GetCacheResult getCacheResult = new GetCacheResult(
-                cacheableGetResult.getUri().toString(),
-                cacheableGetResult.getHeaders()
+                genericGetResult.getUri().toString(),
+                genericGetResult.getHeaders()
                         .entrySet()
                         .stream()
                         .map( e -> new Header( e.getKey(), e.getValue() ) )
                         .collect( Collectors.toList() ),
-                cacheableGetResult.getBody() );
+                genericGetResult.getBody() );
         return getCacheResult;
     }
 
@@ -71,19 +79,20 @@ public class CacheResource {
     @Produces( MediaType.APPLICATION_JSON )
     @Consumes( MediaType.APPLICATION_JSON )
     @ApiResponses( value = {
-            @ApiResponse( code = 201, message = Status.CREATED ),
+            @ApiResponse( code = 201, message = Status.CREATED, responseHeaders = {
+                    @ResponseHeader(name = "Location", description = "https://tools.ietf.org/html/rfc7231#section-7.1.2", response = String.class ) } ),
             @ApiResponse( code = 400, message = Status.BAD_REQUEST ),
             @ApiResponse( code = 422, message = Status.UNPROCESSABLE_ENTITY ),
             @ApiResponse( code = 500, message = Status.INTERNAL_ERROR ),
             @ApiResponse( code = 502, message = Status.BAD_GATEWAY ),
             @ApiResponse( code = 503, message = Status.SERVICE_UNAVAILABLE ) } )
     public Response post(
-            @Valid PostCacheRequest postCacheRequest,
+            @Valid @NotNull PostCacheRequest postCacheRequest,
             @Context UriInfo uriInfo ) {
 
         UUID id = cachingService.add(
                 postCacheRequest.getTtlInMinutes(),
-                CacheableGetResult.fromUri( URI.create( postCacheRequest.getUrl() ) ) );
+                genericGetResultService.get( URI.create( postCacheRequest.getUrl() ) ) );
         UriBuilder builder = uriInfo.getAbsolutePathBuilder();
         builder.path( id.toString() );
         return Response.created( builder.build() ).build();

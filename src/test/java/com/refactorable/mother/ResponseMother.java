@@ -1,4 +1,4 @@
-package com.refactorable.api;
+package com.refactorable.mother;
 
 import javax.ws.rs.core.Response;
 

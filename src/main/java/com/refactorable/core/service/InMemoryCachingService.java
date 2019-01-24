@@ -1,6 +1,5 @@
 package com.refactorable.core.service;
 
-import com.refactorable.core.model.CacheableGetResult;
 import com.refactorable.core.util.Gzip;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
@@ -8,11 +7,12 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class InMemoryCachingService implements CachingService {
+public class InMemoryCachingService<T extends Serializable> implements CachingService<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( InMemoryCachingService.class );
     private static final int DEFAULT_CACHE_SIZE = 1000;
@@ -40,24 +40,27 @@ public class InMemoryCachingService implements CachingService {
     @Override
     public UUID add(
             int ttlInMinutes,
-            CacheableGetResult cacheableGetResult ) {
+            T target ) {
 
         Validate.isTrue( ttlInMinutes > 0 && ttlInMinutes <= 525600 );
-        Validate.notNull( cacheableGetResult );
+        Validate.notNull( target );
 
         UUID key = UUID.randomUUID();
-        expiringMap.put( key, Gzip.compress( cacheableGetResult ), ttlInMinutes, TimeUnit.MINUTES );
+        expiringMap.put( key, Gzip.compress( target ), ttlInMinutes, TimeUnit.MINUTES );
         return key;
     }
 
     @Override
-    public Optional<CacheableGetResult> get( UUID key ) {
+    public Optional<T> get(
+            UUID key,
+            Class<T> clazz ) {
 
         Validate.notNull( key );
+        Validate.notNull( clazz );
 
         byte[] compressed = expiringMap.get( key );
         if( compressed == null ) return Optional.empty();
-        CacheableGetResult cacheableGetResult = Gzip.decompress( compressed, CacheableGetResult.class );
-        return Optional.of( cacheableGetResult );
+        T result = Gzip.decompress( compressed, clazz );
+        return Optional.of( result );
     }
 }

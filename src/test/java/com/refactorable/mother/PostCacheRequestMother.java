@@ -1,4 +1,6 @@
-package com.refactorable.api;
+package com.refactorable.mother;
+
+import com.refactorable.api.PostCacheRequest;
 
 public final class PostCacheRequestMother {
 

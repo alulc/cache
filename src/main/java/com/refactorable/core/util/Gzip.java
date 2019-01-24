@@ -30,6 +30,9 @@ public final class Gzip {
             T decompressed = clazz.cast( objectIn.readObject() );
             LOGGER.debug( "'{}' decompressed", clazz.getSimpleName() );
             return decompressed;
+        } catch( ClassCastException cce ) {
+            LOGGER.error( "failed to decompress '{}'", clazz.getSimpleName(), cce );
+            throw cce;
         } catch( Exception e ) {
             LOGGER.error( "failed to decompress '{}'", clazz.getSimpleName(), e );
             throw new InternalServerErrorException( String.format( "failed to decompress '%s'", clazz.getSimpleName() ) );

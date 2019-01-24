@@ -1,26 +1,32 @@
 package com.refactorable.resources;
 
-import com.refactorable.api.PostCacheRequestMother;
+import com.refactorable.core.model.GenericGetResult;
 import com.refactorable.core.service.CachingService;
-import com.refactorable.core.service.InMemoryCachingService;
+import com.refactorable.core.service.GenericGetResultService;
+import com.refactorable.mother.GenericGetResultMother;
+import com.refactorable.mother.PostCacheRequestMother;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.Serializable;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 
 public class CacheResourceTest {
 
-    private static CachingService cachingService = Mockito.mock( InMemoryCachingService.class );
+    private static CachingService<GenericGetResult> cachingService = Mockito.mock( CachingService.class );
+    private static GenericGetResultService genericGetResultService = Mockito.mock( GenericGetResultService.class );
 
     @ClassRule
     public static ResourceTestRule resources = ResourceTestRule.builder()
-            .addResource( new CacheResource( cachingService ) )
+            .addResource( new CacheResource( cachingService, genericGetResultService ) )
             .build();
 
     @Test
@@ -61,5 +67,23 @@ public class CacheResourceTest {
                 PostCacheRequestMother.googleAndTtlGreaterThanOneYear(),
                 MediaType.APPLICATION_JSON_TYPE ) );
         assertEquals( 422, response.getStatus() );
+    }
+
+    @Test
+    public void post_cacheIsDown_503() {
+        Mockito.doReturn( GenericGetResultMother.google() ).when( genericGetResultService ).get( Mockito.any() );
+        Mockito.doThrow( new ServiceUnavailableException() ).when( cachingService ).add( Mockito.anyInt(), Mockito.any( GenericGetResult.class ) );
+        Response response = resources.client().target( "/cache" ).request().post(  Entity.entity(
+                PostCacheRequestMother.googleAndTtlOneMinute(),
+                MediaType.APPLICATION_JSON_TYPE ) );
+        assertEquals( 503, response.getStatus() );
+    }
+
+    @Test
+    public void get_cacheIsDown_503() {
+        Mockito.doReturn( GenericGetResultMother.google() ).when( genericGetResultService ).get( Mockito.any() );
+        Mockito.doThrow( new ServiceUnavailableException() ).when( cachingService ).get( Mockito.any( UUID.class ), Mockito.any( Class.class ) );
+        Response response = resources.client().target( "/cache/" + UUID.randomUUID().toString() ).request().get();
+        assertEquals( 503, response.getStatus() );
     }
 }

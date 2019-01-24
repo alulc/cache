@@ -1,5 +1,6 @@
-package com.refactorable.core.model;
+package com.refactorable.core.service;
 
+import com.refactorable.core.model.GenericGetResult;
 import com.refactorable.rs.BadGatewayException;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -7,69 +8,43 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import java.io.Serializable;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
-/**
- *  Behaviorally rich domain model, see https://www.martinfowler.com/bliki/AnemicDomainModel.html
- */
-public class CacheableGetResult implements Serializable {
+public class JerseyGenericGetResultService implements GenericGetResultService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( CacheableGetResult.class );
-    private static final long serialVersionUID = -1485513695846146366L;
+    private static final Logger LOGGER = LoggerFactory.getLogger( JerseyGenericGetResultService.class );
 
-    // thread safe
-    static Client CLIENT = ClientBuilder.newClient();
-
-    private final URI uri;
-    private final Map<String, String> headers;
-    private final String body;
+    private final Client client;
 
     /**
      *
-     * @param uri cannot be null
-     * @param headers cannot be null
-     * @param body cannot be null
+     * @param client cannot be null
      */
-    CacheableGetResult(
-            URI uri,
-            Map<String, String> headers,
-            String body ) {
-        this.uri = Validate.notNull( uri );
-        this.headers = Validate.notNull( headers );
-        this.body = Validate.notNull( body );
+    public JerseyGenericGetResultService( Client client ) {
+        LOGGER.info( "creating {}!", this.getClass().getSimpleName() );
+        this.client = Validate.notNull( client );
     }
 
-    /**
-     * Attempts to construct {@link CacheableGetResult} using the {@link URI} provided
-     * by making a GET call to the {@link URI}.
-     *
-     * @param uri cannot be null
-     *
-     * @throws BadGatewayException if a request to the upstream server does not result in 2XX
-     *
-     * @return {@link CacheableGetResult} representation of result from a GET call to the {@link URI}.
-     */
-    public static CacheableGetResult fromUri( URI uri ) {
+
+    @Override
+    public GenericGetResult get( URI uri ) {
 
         Validate.notNull( uri );
 
         Response response = null;
         try {
-            response = CLIENT.target( uri ).request().get();
+            response = client.target( uri ).request().get();
             if( response.getStatus() < 200 || response.getStatus() >= 300 ) {
                 // treat any request that doesn't result in a 2XX (Successful) as an issue with the upstream server.
                 LOGGER.warn( "received '{}' status GET '{}'", response.getStatus(), uri );
                 throw new BadGatewayException();
             }
-            return new CacheableGetResult(
+            return new GenericGetResult(
                     uri,
                     multivaluedMapToMap( response.getStringHeaders() ),
                     response.readEntity( String.class ) );
@@ -79,18 +54,6 @@ public class CacheableGetResult implements Serializable {
         } finally {
             closeQuietly( response );
         }
-    }
-
-    public URI getUri() {
-        return uri;
-    }
-
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
-
-    public String getBody() {
-        return body;
     }
 
     /**
@@ -126,30 +89,5 @@ public class CacheableGetResult implements Serializable {
                 LOGGER.warn( "failed to close response connection!", e );
             }
         }
-    }
-
-    @Override
-    public boolean equals( Object o ) {
-        if( this == o ) return true;
-        if( o == null || getClass() != o.getClass() ) return false;
-        CacheableGetResult that = ( CacheableGetResult ) o;
-        return Objects.equals( uri, that.uri ) &&
-                Objects.equals( headers, that.headers ) &&
-                Objects.equals( body, that.body );
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash( uri, headers, body );
-    }
-
-    @Override
-    public String toString() {
-        return "CacheableGetResult{" +
-                "uri=" + uri +
-                ", headers=" + headers +
-                ", body='" + body + '\'' +
-                '}';
     }
 }

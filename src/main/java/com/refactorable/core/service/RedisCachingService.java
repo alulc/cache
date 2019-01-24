@@ -1,6 +1,5 @@
 package com.refactorable.core.service;
 
-import com.refactorable.core.model.CacheableGetResult;
 import com.refactorable.core.util.Gzip;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -11,10 +10,11 @@ import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
 
 import javax.ws.rs.ServiceUnavailableException;
+import java.io.Serializable;
 import java.util.Optional;
 import java.util.UUID;
 
-public class RedisCachingService implements CachingService {
+public class RedisCachingService<T extends Serializable> implements CachingService<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( RedisCachingService.class );
 
@@ -32,10 +32,10 @@ public class RedisCachingService implements CachingService {
     @Override
     public UUID add(
             int ttlInMinutes,
-            CacheableGetResult cacheableGetResult ) {
+            T target ) {
 
         Validate.isTrue( ttlInMinutes > 0 && ttlInMinutes <= 525600 );
-        Validate.notNull( cacheableGetResult );
+        Validate.notNull( target );
 
         Jedis jedis = null;
         UUID key = UUID.randomUUID();
@@ -43,7 +43,7 @@ public class RedisCachingService implements CachingService {
         try {
             jedis = jedisPool.getResource();
             Transaction transaction = jedis.multi();
-            transaction.set( keyAsBytes, Gzip.compress( cacheableGetResult ) );
+            transaction.set( keyAsBytes, Gzip.compress( target ) );
             transaction.expire( keyAsBytes, ttlInMinutes * 60 );
             transaction.exec();
             return key;
@@ -56,17 +56,20 @@ public class RedisCachingService implements CachingService {
     }
 
     @Override
-    public Optional<CacheableGetResult> get( UUID key ) {
+    public Optional<T> get(
+            UUID key,
+            Class<T> clazz ) {
 
         Validate.notNull( key );
+        Validate.notNull( clazz );
 
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
             byte[] compressed = jedis.get( key.toString().getBytes() );
             if( compressed == null ) return Optional.empty();
-            CacheableGetResult cacheableGetResult = Gzip.decompress( compressed, CacheableGetResult.class );
-            return Optional.of( cacheableGetResult );
+            T result = Gzip.decompress( compressed, clazz );
+            return Optional.of( result );
         } catch( JedisException je ) {
             LOGGER.error( "failed to connect to redis", je );
             throw new ServiceUnavailableException();
