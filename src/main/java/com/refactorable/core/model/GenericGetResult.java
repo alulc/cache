@@ -13,10 +13,9 @@ public class GenericGetResult implements Serializable {
 
     private final URI uri;
     private final Map<String, String> headers;
-    private final String body;
+    private final byte[] body;
 
     /**
-     *
      * @param uri cannot be null
      * @param headers cannot be null
      * @param body cannot be null
@@ -24,7 +23,7 @@ public class GenericGetResult implements Serializable {
     public GenericGetResult(
             URI uri,
             Map<String, String> headers,
-            String body ) {
+            byte[] body ) {
         this.uri = Validate.notNull( uri );
         this.headers = Validate.notNull( headers );
         this.body = Validate.notNull( body );
@@ -38,7 +37,7 @@ public class GenericGetResult implements Serializable {
         return headers;
     }
 
-    public String getBody() {
+    public byte[] getBody() {
         return body;
     }
 

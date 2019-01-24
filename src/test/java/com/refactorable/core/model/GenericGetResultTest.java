@@ -12,7 +12,7 @@ public class GenericGetResultTest {
         new GenericGetResult(
                 null,
                 new HashMap<>(),
-                "" );
+                new byte[]{} );
     }
 
     @Test( expected = NullPointerException.class )
@@ -20,7 +20,7 @@ public class GenericGetResultTest {
         new GenericGetResult(
                 URI.create( "http://www.google.com" ),
                 null,
-                "" );
+                new byte[]{} );
     }
 
     @Test( expected = NullPointerException.class )

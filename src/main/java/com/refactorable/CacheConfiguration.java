@@ -12,7 +12,7 @@ public class CacheConfiguration extends Configuration {
     @JsonProperty
     private JedisFactory redis;
 
-    @JsonProperty("swagger")
+    @JsonProperty( "swagger" )
     private SwaggerBundleConfiguration swaggerBundleConfiguration;
 
     @JsonProperty

@@ -20,16 +20,16 @@ public class GetCacheResult {
 
     @NotEmpty
     @ApiModelProperty( required = true )
-    private final String body;
+    private final String bodyAsBase64Encoded;
 
     @JsonCreator
     public GetCacheResult(
-            @JsonProperty("url") String url,
-            @JsonProperty("headers") List<Header> headers,
-            @JsonProperty("body") String body ) {
+            @JsonProperty( "url" ) String url,
+            @JsonProperty( "headers" ) List<Header> headers,
+            @JsonProperty( "bodyAsBase64Encoded" ) String bodyAsBase64Encoded ) {
         this.url = url;
         this.headers = headers;
-        this.body = body;
+        this.bodyAsBase64Encoded = bodyAsBase64Encoded;
     }
 
     public String getUrl() {
@@ -40,8 +40,8 @@ public class GetCacheResult {
         return headers;
     }
 
-    public String getBody() {
-        return body;
+    public String getBodyAsBase64Encoded() {
+        return bodyAsBase64Encoded;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class GetCacheResult {
         return "GetCacheResult{" +
                 "url='" + url + '\'' +
                 ", headers=" + headers +
-                ", body='" + body + '\'' +
+                ", bodyAsBase64Encoded='" + bodyAsBase64Encoded + '\'' +
                 '}';
     }
 }

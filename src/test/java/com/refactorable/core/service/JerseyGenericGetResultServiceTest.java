@@ -54,7 +54,7 @@ public class JerseyGenericGetResultServiceTest {
         Mockito.when( client.target( Mockito.any( URI.class ) ).request().get() ).thenThrow( new ProcessingException( "cannot connect" ) );
         genericGetResultService.get( URI.create( "http://www.google.com" ) );
     }
-    
+
     @Test
     public void closeQuietly_nullResponse_ok() {
         JerseyGenericGetResultService.closeQuietly( null );

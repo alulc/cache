@@ -7,12 +7,13 @@ import java.util.HashMap;
 
 public final class GenericGetResultMother {
 
-    GenericGetResultMother() {}
+    GenericGetResultMother() {
+    }
 
     public static GenericGetResult google() {
         return new GenericGetResult(
                 URI.create( "https://www.google.com" ),
                 new HashMap<>(),
-                "<html></html>" );
+                new byte[]{} );
     }
 }

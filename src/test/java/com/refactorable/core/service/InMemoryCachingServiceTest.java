@@ -1,12 +1,10 @@
 package com.refactorable.core.service;
 
-import com.refactorable.api.GetCacheResult;
 import com.refactorable.core.model.GenericGetResult;
 import com.refactorable.core.util.Gzip;
 import com.refactorable.mother.GenericGetResultMother;
 import net.jodah.expiringmap.ExpiringMap;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -52,7 +50,7 @@ public class InMemoryCachingServiceTest {
 
     @Test
     public void add_overCapacity_returnsLastInsertedButNotFirst() {
-        UUID firstId =cachingService.add( 1, GenericGetResultMother.google() );
+        UUID firstId = cachingService.add( 1, GenericGetResultMother.google() );
         UUID secondId = cachingService.add( 1, GenericGetResultMother.google() );
         assertTrue( !cachingService.get( firstId, GenericGetResult.class ).isPresent() );
         assertTrue( cachingService.get( secondId, GenericGetResult.class ).isPresent() );

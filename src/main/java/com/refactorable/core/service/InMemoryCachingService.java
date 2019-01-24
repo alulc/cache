@@ -20,7 +20,6 @@ public class InMemoryCachingService<T extends Serializable> implements CachingSe
     private final ExpiringMap<UUID, byte[]> expiringMap;
 
     /**
-     *
      * @param expiringMap cannot be null
      */
     public InMemoryCachingService( ExpiringMap<UUID, byte[]> expiringMap ) {

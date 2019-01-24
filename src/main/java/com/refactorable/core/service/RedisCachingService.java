@@ -21,12 +21,23 @@ public class RedisCachingService<T extends Serializable> implements CachingServi
     private final JedisPool jedisPool;
 
     /**
-     *
      * @param jedisPool cannot be null
      */
     public RedisCachingService( JedisPool jedisPool ) {
         LOGGER.info( "creating {}!", this.getClass().getSimpleName() );
         this.jedisPool = Validate.notNull( jedisPool );
+    }
+
+    static void closeQuietly( Jedis jedis ) {
+        if( jedis != null ) {
+            LOGGER.debug( "closing redis connection" );
+            try {
+                jedis.close();
+                LOGGER.debug( "redis connection closed" );
+            } catch( Exception e ) {
+                LOGGER.warn( "failed to close redis connection!", e );
+            }
+        }
     }
 
     @Override
@@ -75,18 +86,6 @@ public class RedisCachingService<T extends Serializable> implements CachingServi
             throw new ServiceUnavailableException();
         } finally {
             closeQuietly( jedis );
-        }
-    }
-
-    static void closeQuietly( Jedis jedis ) {
-        if( jedis != null ) {
-            LOGGER.debug( "closing redis connection" );
-            try {
-                jedis.close();
-                LOGGER.debug( "redis connection closed" );
-            } catch( Exception e ) {
-                LOGGER.warn( "failed to close redis connection!", e );
-            }
         }
     }
 }

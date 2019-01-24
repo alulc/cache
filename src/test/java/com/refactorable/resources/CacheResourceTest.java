@@ -14,7 +14,6 @@ import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.Serializable;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -31,7 +30,7 @@ public class CacheResourceTest {
 
     @Test
     public void post_invalidUrl_422() {
-        Response response = resources.client().target( "/cache" ).request().post(  Entity.entity(
+        Response response = resources.client().target( "/cache" ).request().post( Entity.entity(
                 PostCacheRequestMother.invalidUrlAndTtlOneMinute(),
                 MediaType.APPLICATION_JSON_TYPE ) );
         assertEquals( 422, response.getStatus() );
@@ -39,7 +38,7 @@ public class CacheResourceTest {
 
     @Test
     public void post_blankUrl_422() {
-        Response response = resources.client().target( "/cache" ).request().post(  Entity.entity(
+        Response response = resources.client().target( "/cache" ).request().post( Entity.entity(
                 PostCacheRequestMother.blankUrlAndTtlOneMinute(),
                 MediaType.APPLICATION_JSON_TYPE ) );
         assertEquals( 422, response.getStatus() );
@@ -47,7 +46,7 @@ public class CacheResourceTest {
 
     @Test
     public void post_nullUrl_422() {
-        Response response = resources.client().target( "/cache" ).request().post(  Entity.entity(
+        Response response = resources.client().target( "/cache" ).request().post( Entity.entity(
                 PostCacheRequestMother.nullUrlAndTtlOneMinute(),
                 MediaType.APPLICATION_JSON_TYPE ) );
         assertEquals( 422, response.getStatus() );
@@ -55,7 +54,7 @@ public class CacheResourceTest {
 
     @Test
     public void post_ttlLessThanOne_422() {
-        Response response = resources.client().target( "/cache" ).request().post(  Entity.entity(
+        Response response = resources.client().target( "/cache" ).request().post( Entity.entity(
                 PostCacheRequestMother.googleAndTtllessThanOneMinute(),
                 MediaType.APPLICATION_JSON_TYPE ) );
         assertEquals( 422, response.getStatus() );
@@ -63,7 +62,7 @@ public class CacheResourceTest {
 
     @Test
     public void post_ttlGreaterThanOneYear_422() {
-        Response response = resources.client().target( "/cache" ).request().post(  Entity.entity(
+        Response response = resources.client().target( "/cache" ).request().post( Entity.entity(
                 PostCacheRequestMother.googleAndTtlGreaterThanOneYear(),
                 MediaType.APPLICATION_JSON_TYPE ) );
         assertEquals( 422, response.getStatus() );
@@ -73,7 +72,7 @@ public class CacheResourceTest {
     public void post_cacheIsDown_503() {
         Mockito.doReturn( GenericGetResultMother.google() ).when( genericGetResultService ).get( Mockito.any() );
         Mockito.doThrow( new ServiceUnavailableException() ).when( cachingService ).add( Mockito.anyInt(), Mockito.any( GenericGetResult.class ) );
-        Response response = resources.client().target( "/cache" ).request().post(  Entity.entity(
+        Response response = resources.client().target( "/cache" ).request().post( Entity.entity(
                 PostCacheRequestMother.googleAndTtlOneMinute(),
                 MediaType.APPLICATION_JSON_TYPE ) );
         assertEquals( 503, response.getStatus() );

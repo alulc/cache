@@ -18,7 +18,9 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,15 +31,14 @@ import static com.refactorable.resources.CacheResource.PATH_BASE;
 @Api( value = "Cache API" )
 public class CacheResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( CacheResource.class );
-
     public static final String PATH_BASE = "/cache";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( CacheResource.class );
 
     private final CachingService<GenericGetResult> cachingService;
     private final GenericGetResultService genericGetResultService;
 
     /**
-     *
      * @param cachingService cannot be null
      * @param genericGetResultService cannot be null
      */
@@ -63,16 +64,22 @@ public class CacheResource {
 
         if( !optionalCacheableGetResult.isPresent() ) throw new NotFoundException();
 
-        GenericGetResult genericGetResult = optionalCacheableGetResult.get();
-        GetCacheResult getCacheResult = new GetCacheResult(
-                genericGetResult.getUri().toString(),
-                genericGetResult.getHeaders()
-                        .entrySet()
-                        .stream()
-                        .map( e -> new Header( e.getKey(), e.getValue() ) )
-                        .collect( Collectors.toList() ),
-                genericGetResult.getBody() );
-        return getCacheResult;
+        try {
+            GenericGetResult genericGetResult = optionalCacheableGetResult.get();
+            Base64.Encoder encoder = Base64.getEncoder();
+            GetCacheResult getCacheResult = new GetCacheResult(
+                    genericGetResult.getUri().toString(),
+                    genericGetResult.getHeaders()
+                            .entrySet()
+                            .stream()
+                            .map( e -> new Header( e.getKey(), e.getValue() ) )
+                            .collect( Collectors.toList() ),
+                    new String( encoder.encode( genericGetResult.getBody() ), "UTF-8" ) );
+            return getCacheResult;
+        } catch( UnsupportedEncodingException uee ) {
+            LOGGER.error( "could not encode body", uee );
+            throw new InternalServerErrorException();
+        }
     }
 
     @POST
@@ -80,7 +87,7 @@ public class CacheResource {
     @Consumes( MediaType.APPLICATION_JSON )
     @ApiResponses( value = {
             @ApiResponse( code = 201, message = Status.CREATED, responseHeaders = {
-                    @ResponseHeader(name = "Location", description = "https://tools.ietf.org/html/rfc7231#section-7.1.2", response = String.class ) } ),
+                    @ResponseHeader( name = "Location", description = "https://tools.ietf.org/html/rfc7231#section-7.1.2", response = String.class ) } ),
             @ApiResponse( code = 400, message = Status.BAD_REQUEST ),
             @ApiResponse( code = 422, message = Status.UNPROCESSABLE_ENTITY ),
             @ApiResponse( code = 500, message = Status.INTERNAL_ERROR ),

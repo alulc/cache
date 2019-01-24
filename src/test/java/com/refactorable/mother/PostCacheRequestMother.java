@@ -4,7 +4,8 @@ import com.refactorable.api.PostCacheRequest;
 
 public final class PostCacheRequestMother {
 
-    PostCacheRequestMother() {}
+    PostCacheRequestMother() {
+    }
 
     public static PostCacheRequest googleAndTtlOneMinute() {
         return new PostCacheRequest( 1, "https://www.google.com" );

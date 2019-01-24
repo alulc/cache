@@ -17,8 +17,8 @@ public class Header {
 
     @JsonCreator
     public Header(
-            @JsonProperty("name") String name,
-            @JsonProperty("value") String value ) {
+            @JsonProperty( "name" ) String name,
+            @JsonProperty( "value" ) String value ) {
         this.name = name;
         this.value = value;
     }

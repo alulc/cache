@@ -56,7 +56,7 @@ public class IntegrationTest {
                 PostCacheRequestMother.googleAndTtlOneMinute().getUrl(),
                 getCacheResult.getUrl() );
         assertNotNull( getCacheResult.getHeaders() );
-        assertNotNull( getCacheResult.getBody() );
+        assertNotNull( getCacheResult.getBodyAsBase64Encoded() );
     }
 
     @Test
@@ -77,7 +77,10 @@ public class IntegrationTest {
 
         // wait for ttl to expire
         LoggerFactory.getLogger( this.getClass() ).info( "waiting for ttl to expire..." );
-        try{ Thread.sleep( 61000 ); } catch( Exception e ) {}
+        try {
+            Thread.sleep( 61000 );
+        } catch( Exception e ) {
+        }
 
         target = RULE.client().target( header );
         response = target.request().get();

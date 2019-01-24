@@ -4,7 +4,8 @@ import javax.ws.rs.core.Response;
 
 public final class ResponseMother {
 
-    ResponseMother() {}
+    ResponseMother() {
+    }
 
     public static Response statusCode100() {
         return Response.status( 100 ).build();

@@ -13,7 +13,8 @@ public final class Gzip {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Gzip.class );
 
-    Gzip() {}
+    Gzip() {
+    }
 
     public static <T> T decompress(
             byte[] compressed,
@@ -51,7 +52,7 @@ public final class Gzip {
             objectOut.writeObject( target );
             objectOut.close(); // <- required
             byte[] compressed = baos.toByteArray();
-            LOGGER.debug( "compressed to '{}' bytes", compressed.length );
+            LOGGER.info( "compressed to '{}' bytes", compressed.length );
             return compressed;
         } catch( Exception e ) {
             LOGGER.error( "failed to compress '{}'", target.getClass().getSimpleName(), e );
